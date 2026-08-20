@@ -4,24 +4,12 @@ kernelsu-objs += feature/kernel_umount.o
 kernelsu-objs += feature/sulog.o
 kernelsu-objs += feature/sucompat.o
 
-kernelsu-objs += hook/lsm_hook.o
 kernelsu-objs += hook/setuid_hook.o
-kernelsu-objs += hook/syscall_event_bridge.o
-kernelsu-objs += hook/syscall_hook_manager.o
-kernelsu-objs += hook/tp_marker.o
-ifeq ($(CONFIG_ARM64),y)
-kernelsu-objs += hook/arm64/patch_memory.o
-kernelsu-objs += hook/arm64/syscall_hook.o
-else ifeq ($(CONFIG_X86_64),y)
-kernelsu-objs += hook/x86_64/patch_memory.o
-kernelsu-objs += hook/x86_64/syscall_hook.o
-endif
 
 kernelsu-objs += infra/file_wrapper.o
 kernelsu-objs += infra/event_queue.o
 kernelsu-objs += infra/seccomp_cache.o
 kernelsu-objs += infra/su_mount_ns.o
-kernelsu-objs += infra/symbol_resolver.o
 
 ifneq ($(CONFIG_KSU_DISABLE_MANAGER),y)
 kernelsu-objs += manager/apk_sign.o
@@ -61,9 +49,6 @@ endif
 ifeq ($(CONFIG_KSU_DEBUG),y)
 ccflags-y += -DCONFIG_KSU_DEBUG=1
 endif
-ifeq ($(CONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER),y)
-ccflags-y += -DCONFIG_KSU_X86_PATCH_SYSCALL_DISPATCHER=1
-endif
 endif
 
 ccflags-y += -I$(srctree)/security/selinux -I$(srctree)/security/selinux/include
@@ -93,7 +78,7 @@ KERNEL_GIT_ROOT := $(shell cd $(srctree) && $(GIT) rev-parse --show-toplevel 2>/
 ifneq ($(GIT_ROOT),$(KERNEL_GIT_ROOT))
 # Only set version if it's a different repo from kernel
 $(shell cd $(GIT_ROOT) && [ -f .git/shallow ] && $(GIT) fetch --unshallow 2>/dev/null || true)
-KSU_GIT_VERSION := $(shell cd $(GIT_ROOT) && $(GIT) rev-list --count HEAD 2>/dev/null)
+KSU_GIT_VERSION := $(shell cd $(GIT_ROOT) && $(GIT) rev-list --count refs/tags/ksu-upstream-a70c8085 2>/dev/null || $(GIT) rev-list --count HEAD 2>/dev/null)
 KSU_GIT_VERSION_VALID := 1
 $(info -- KernelSU: Git repo detected at $(GIT_ROOT))
 endif
